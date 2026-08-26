@@ -1,0 +1,35 @@
+// server-actions/checkout.ts
+'use server'
+import Stripe from 'stripe'
+import { currentUser } from '@/lib/auth'
+import { db } from '@/lib/db'
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-...' })
+
+export async function createCheckoutSession(plan: 'free' | 'premium') {
+  const user = await currentUser()
+  if (!user) throw new Error('Unauthorized')
+
+  // Ensure Stripe customer
+  let customerId = user.stripeCustomerId
+  if (!customerId) {
+    const customer = await stripe.customers.create({ email: user.email })
+    customerId = customer.id
+    await db.user.update({ where: { id: user.id }, data: { stripeCustomerId: customerId } })
+  }
+
+  const priceId = plan === 'premium'
+    ? process.env.STRIPE_PRICE_ID_PREMIUM_MONTHLY
+    : process.env.STRIPE_PRICE_ID_FREE
+
+  const session = await stripe.checkout.sessions.create({
+    customer: customerId,
+    line_items: [{ price: priceId, quantity: 1 }],
+    mode: 'subscription',
+    success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/settings?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/settings`,
+    metadata: { userId: user.id, plan },
+  })
+
+  return session.url
+}
