@@ -1,36 +1,24 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Base44 artifacts
+docker-compose.base44.yml
+.base44/
+AGENTS.md
+.env.base44-defaults
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
+# Dependencies
+node_modules/
 
-# testing
-/coverage
+# Next.js
+.next/
+out/
 
-# next.js
-/.next/
-/out/
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
 
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# local env files
-.env*.local
+# Env
 .env
+.env.local
 
-# vercel
-.vercel
-
-# typescript
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
