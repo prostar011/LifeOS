@@ -1,0 +1,420 @@
+# LifeOS Demo Script
+
+## Scenario: Meet Alex, a busy professional who uses LifeOS as their digital secretary
+
+---
+
+## Part 1: First-Time Setup (2 minutes)
+
+### Narrator:
+"Alex just signed up for LifeOS. Let's walk through their first experience."
+
+### On Screen:
+- Show signup page (email + password)
+- Alex enters: `alex@example.com` / password
+- Clicks "Sign Up"
+
+### Narrator:
+"Alex is now logged in and sees the main dashboard for the first time."
+
+### On Screen:
+- Dashboard loads with three tabs: Money, Tasks, Local
+- Voice button (🎤) visible in top right
+- AI command bar: "Ask LifeOS or speak naturally..."
+
+---
+
+## Part 2: Voice Commands (3 minutes)
+
+### Narrator:
+"Instead of typing, Alex decides to try voice commands."
+
+### On Screen:
+- Alex clicks the 🎤 Voice button
+- Button turns red: "🔴 Listening"
+- Alex speaks: **"Show me my spending"**
+
+### System:
+- Transcribes voice to text
+- Switches to Money tab
+- AI responds (spoken aloud):
+  > "You've spent $1,247 this month. Your biggest categories are dining out ($312), groceries ($198), and subscriptions ($156). Want me to show your subscriptions?"
+
+### On Screen:
+- Money tab shows:
+  - Total balance: $3,456.78
+  - This month's spend: $1,247.00
+  - Subscriptions list (Netflix, Spotify, Gym)
+  - Recent transactions
+
+### Narrator:
+"Alex is impressed. The app understood natural speech and showed relevant data."
+
+---
+
+## Part 3: Task Management with Voice (2 minutes)
+
+### Narrator:
+"Alex remembers they need to call their mom."
+
+### On Screen:
+- Alex clicks 🎤 Voice button again
+- Alex speaks: **"Add task call mom"**
+
+### System:
+- Transcribes: "Add task call mom"
+- Switches to Tasks tab
+- Creates new task: "Call mom"
+- AI responds (spoken aloud):
+  > "Okay, I added 'Call mom' to your tasks. Want me to remind you to call her this evening?"
+
+### On Screen:
+- Tasks tab shows:
+  - Today's date: Wednesday, August 26
+  - Task list: "Call mom" (unchecked)
+  - Voice hint: "Add task pay rent Friday", "Plan my day"
+
+### Narrator:
+"Alex can now see all their tasks in one place, added just by speaking."
+
+---
+
+## Part 4: Secretary Autonomy - Booking a Dentist (4 minutes)
+
+### Narrator:
+"Alex has a toothache and needs to see a dentist. Instead of searching and calling manually, they ask LifeOS."
+
+### On Screen:
+- Alex clicks 🎤 Voice button
+- Alex speaks: **"My tooth hurts, find me a dentist"**
+
+### System:
+- Transcribes: "My tooth hurts, find me a dentist"
+- AI processes intent
+- Secretary module activates
+
+### Narrator:
+"LifeOS now searches for nearby dentists, checks Alex's preferences, and prepares to make a call."
+
+### On Screen:
+- Shows loading state: "Finding dentists near you..."
+- After 3 seconds, shows:
+  - "Found 3 dentists near you"
+  - Top match: Dr. Smith Dental (0.8 miles, 4.9★, accepts Blue Cross)
+  - Button: "Book appointment"
+
+### Alex:
+- Clicks "Book appointment"
+
+### System:
+- Secretary module checks preferences:
+  - `preferredAppointmentTime: morning (90% confidence)`
+  - `maxTravelDistance: 10 miles (95% confidence)`
+  - `insuranceProvider: Blue Cross (100% confidence)`
+- Risk level: medium, confidence 0.9 → auto-approve
+- Twilio call initiated
+
+### On Screen:
+- Shows: "Calling Dr. Smith Dental..."
+- TwiML script plays (via Twilio):
+  > "Hello, I'm calling on behalf of Alex to book a dental appointment. They are experiencing tooth pain and would like to schedule an appointment as soon as possible. They prefer morning appointments. Their insurance provider is Blue Cross. Please call back +1-555-0123 or text to confirm availability. Thank you for your time. Goodbye."
+
+### Narrator:
+"LifeOS just made a real phone call on Alex's behalf, using a natural, polite script."
+
+### On Screen:
+- After call completes:
+  - "Call completed. Dr. Smith's office will text you with available times."
+  - Secretary Dashboard shows new action:
+    - Type: 📞 call
+    - Target: Dr. Smith Dental
+    - Status: ✅ Completed
+    - Executed: Wed, Aug 26, 1:15 PM
+
+---
+
+## Part 5: Reviewing Preferences (2 minutes)
+
+### Narrator:
+"Alex wants to see what LifeOS has learned about them."
+
+### On Screen:
+- Alex navigates to `/preferences`
+- Preference Management Page loads
+
+### On Screen:
+- Shows learned preferences:
+  - 🏥 Health:
+    - `preferredAppointmentTime: morning (90% confidence)`
+    - `maxTravelDistance: 10 miles (95% confidence)`
+  - 💰 Finance:
+    - `preferredStore: Whole Foods (85% confidence)`
+    - `maxDiningSpend: $50 (70% confidence)`
+  - 🛒 Groceries:
+    - `usualOrder: ['Milk', 'Eggs', 'Bread', 'Avocados'] (80% confidence)`
+
+### Narrator:
+"Alex sees that LifeOS has been learning their preferences. They decide to update one."
+
+### On Screen:
+- Alex clicks "Edit" on `preferredStore: Whole Foods`
+- Changes to: `preferredStore: Trader Joe's`
+- Clicks "Save"
+
+### System:
+- Updates preference in database
+- Confidence resets to 0.1 (will increase as Alex continues to choose Trader Joe's)
+
+### Narrator:
+"Future grocery orders will now default to Trader Joe's instead of Whole Foods."
+
+---
+
+## Part 6: Secretary Dashboard - Audit Trail (2 minutes)
+
+### Narrator:
+"Alex wants to review all the actions LifeOS has taken on their behalf."
+
+### On Screen:
+- Alex navigates to `/secretary`
+- Secretary Dashboard loads
+
+### On Screen:
+- **Pending Approvals** section (empty for now)
+- **Action History** section shows:
+  - 📞 call → Dr. Smith Dental → ✅ Completed → Wed, Aug 26, 1:15 PM
+  - 💬 sms → Mom → ✅ Completed → Wed, Aug 26, 12:30 PM
+  - 🛒 order → Whole Foods → ✅ Completed → Tue, Aug 25, 6:45 PM
+  - ❌ cancel → Netflix → ✅ Completed → Mon, Aug 24, 3:20 PM
+
+### Narrator:
+"Alex can see a complete audit trail of everything LifeOS has done. Every call, message, order, and cancellation is logged for transparency."
+
+---
+
+## Part 7: High-Stakes Decision - Requires Approval (3 minutes)
+
+### Narrator:
+"Later, Alex asks LifeOS to book a specialist appointment, which is higher risk."
+
+### On Screen:
+- Alex clicks 🎤 Voice button
+- Alex speaks: **"Book me a dermatologist for a mole checkup"**
+
+### System:
+- Transcribes: "Book me a dermatologist for a mole checkup"
+- Secretary module processes
+- Risk level: high (specialist medical appointment)
+- Requires explicit approval
+
+### On Screen:
+- Shows: "This action requires your approval"
+- Details:
+  - Action: 📅 book
+  - Target: Dr. Jones Dermatology (1.2 miles, 4.8★)
+  - Payload:
+    ```json
+    {
+      "symptoms": "mole checkup",
+      "preferredTime": "morning",
+      "insuranceProvider": "Blue Cross",
+      "maxDistance": 10
+    }
+    ```
+- Buttons: **Approve** (green) / **Reject** (red)
+
+### Narrator:
+"Because this is a high-stakes action, LifeOS asks for Alex's explicit approval before proceeding."
+
+### On Screen:
+- Alex reviews details
+- Clicks **Approve**
+
+### System:
+- Executes action via Twilio
+- Calls Dr. Jones Dermatology
+- Plays TwiML script
+
+### On Screen:
+- After call completes:
+  - "Appointment request sent. Dr. Jones's office will call you back to confirm."
+  - Action moves to "Completed" in Secretary Dashboard
+
+---
+
+## Part 8: Subscription Cancellation (2 minutes)
+
+### Narrator:
+"Alex decides to cancel their gym membership."
+
+### On Screen:
+- Alex clicks 🎤 Voice button
+- Alex speaks: **"Cancel my gym membership"**
+
+### System:
+- Transcribes: "Cancel my gym membership"
+- Retrieves subscription: "FitLife Gym", $49/month
+- Checks preferences: `cancel_gym_method: email (75% confidence)`
+- Risk level: low, confidence 0.75 → auto-approve
+
+### On Screen:
+- Shows: "Canceling FitLife Gym membership..."
+- Sends cancellation email via SendGrid:
+  - To: support@fitlifegym.com
+  - Subject: Cancellation Request - Account alex@example.com
+  - Body: "Hi, I'd like to cancel my FitLife Gym membership associated with alex@example.com. Please confirm the cancellation and final billing date. Thank you."
+
+### Narrator:
+"LifeOS automatically generated and sent a cancellation email, using Alex's preferred method."
+
+### On Screen:
+- After email sent:
+  - "Cancellation email sent. FitLife Gym will respond within 2-3 business days."
+  - Secretary Dashboard shows:
+    - ❌ cancel → FitLife Gym → ✅ Completed → Wed, Aug 26, 1:45 PM
+
+---
+
+## Part 9: Local Essentials - Finding Groceries (2 minutes)
+
+### Narrator:
+"Alex needs groceries for dinner tonight."
+
+### On Screen:
+- Alex clicks 🎤 Voice button
+- Alex speaks: **"Find cheap groceries near me"**
+
+### System:
+- Transcribes: "Find cheap groceries near me"
+- Switches to Local tab
+- Queries Google Places API
+
+### On Screen:
+- Local tab shows:
+  - 🛒 Trader Joe's (0.5 miles) - $
+  - 🛒 Whole Foods (0.8 miles) - $$$
+  - 🛒 Safeway (1.2 miles) - $$
+- Quick actions:
+  - "Order groceries for pickup"
+  - "Get directions"
+
+### Narrator:
+"LifeOS shows nearby grocery stores with price indicators, sorted by distance."
+
+### On Screen:
+- Alex clicks "Order groceries for pickup"
+- System:
+  - Retrieves usual order from preferences: ['Milk', 'Eggs', 'Bread', 'Avocados']
+  - Prefers Trader Joe's (updated preference)
+  - Places order via Instacart API
+
+### On Screen:
+- Shows: "Order placed at Trader Joe's for pickup at 6:00 PM"
+- Secretary Dashboard shows:
+  - 🛒 order → Trader Joe's → ✅ Completed → Wed, Aug 26, 2:00 PM
+
+---
+
+## Part 10: Premium Upgrade - Stripe Payment (2 minutes)
+
+### Narrator:
+"Alex has been using the free tier, which limits AI queries to 20/day. They decide to upgrade."
+
+### On Screen:
+- Alex sees banner: "Upgrade to Premium for unlimited AI queries"
+- Clicks "Upgrade" button
+
+### System:
+- Creates Stripe Checkout Session
+- Redirects to Stripe-hosted payment page
+
+### On Screen:
+- Stripe Checkout page shows:
+  - LifeOS Premium - $9.99/month
+  - Card input (test mode: 4242 4242 4242 4242)
+- Alex enters test card details
+- Clicks "Pay"
+
+### System:
+- Stripe processes payment
+- Webhook fires: `checkout.session.completed`
+- Backend updates user plan to "premium"
+
+### On Screen:
+- Redirects back to LifeOS dashboard
+- Banner now shows: "Premium Member ✅"
+- AI query limit: Unlimited (was 20/day)
+
+### Narrator:
+"Alex is now a premium member with unlimited AI queries and advanced features."
+
+---
+
+## Part 11: PWA Installation - iPhone (1 minute)
+
+### Narrator:
+"Alex wants LifeOS on their iPhone home screen for quick access."
+
+### On Screen:
+- Alex opens Safari on iPhone
+- Navigates to https://lifeos.app
+- Taps "Share" button → "Add to Home Screen"
+- LifeOS icon appears on home screen
+
+### On Screen:
+- Alex taps LifeOS icon
+- App opens in standalone mode (no Safari UI)
+- Shows dashboard, fully functional
+
+### Narrator:
+"LifeOS is now installed as a PWA, working like a native app on Alex's iPhone."
+
+---
+
+## Part 12: End-to-End Summary (2 minutes)
+
+### Narrator:
+"In just 20 minutes, Alex has:"
+
+### On Screen (bullet points):
+- ✅ Signed up and logged in
+- ✅ Used voice commands for natural interaction
+- ✅ Added tasks by speaking
+- ✅ Booked a dentist via autonomous phone call
+- ✅ Reviewed and edited learned preferences
+- ✅ Viewed complete audit trail of actions
+- ✅ Canceled a gym membership via email
+- ✅ Ordered groceries for pickup
+- ✅ Upgraded to premium via Stripe
+- ✅ Installed as PWA on iPhone
+
+### Narrator:
+"LifeOS isn't just an app—it's a digital secretary that learns, acts, and saves Alex time every day."
+
+---
+
+## Closing Screen
+
+### On Screen:
+- LifeOS logo
+- Tagline: "Your AI Life Assistant"
+- CTA: "Start your free trial at lifeos.app"
+
+### Narrator:
+"Ready to get your own digital secretary? Try LifeOS today."
+
+---
+
+## Demo Notes for Presenter
+
+- **Total runtime**: ~25 minutes
+- **Key highlights**:
+  - Voice-first interaction (no typing required)
+  - Autonomous actions (calls, emails, bookings)
+  - Preference learning (gets smarter over time)
+  - Transparency (full audit trail)
+  - Privacy-first (on-device AI where possible)
+- **Audience engagement**:
+  - Ask: "How much time do you spend on calls and bookings monthly?"
+  - Show: Real Twilio call log (redacted for privacy)
+  - Demo: Live voice command on stage (if environment allows)
