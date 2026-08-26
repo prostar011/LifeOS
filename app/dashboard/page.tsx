@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useVoiceCommands } from "@/hooks/useVoiceCommands";
+import Link from "next/link";
 
 // Simple types for MVP
 type Transaction = {
@@ -156,11 +157,11 @@ export default function VoiceDashboardPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Top bar */}
       <header className="border-b bg-white">
-        <div className="mx-auto max-w-5xl px-4 py-4 flex items-center justify-between">
+        <div className="mx-auto max-w-5xl px-4 py-3 flex items-center justify-between gap-2 flex-wrap">
           <h1 className="text-xl font-semibold">LifeOS</h1>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Voice status */}
-            <div className="hidden sm:block text-sm text-gray-600">
+            <div className="hidden md:block text-sm text-gray-600">
               {voiceError ? (
                 <span className="text-red-600">{voiceError}</span>
               ) : (
@@ -176,26 +177,34 @@ export default function VoiceDashboardPage() {
             >
               {isListening ? "🔴 Listening" : "🎤 Voice"}
             </button>
-            <nav className="flex gap-2">
+            <nav className="flex gap-1 sm:gap-2">
               <button
                 onClick={() => setActiveTab("money")}
-                className={`px-3 py-2 rounded ${activeTab === "money" ? "bg-black text-white" : "hover:bg-gray-100"}`}
+                className={`px-3 py-2 rounded text-sm ${activeTab === "money" ? "bg-black text-white" : "hover:bg-gray-100"}`}
               >
                 Money
               </button>
               <button
                 onClick={() => setActiveTab("tasks")}
-                className={`px-3 py-2 rounded ${activeTab === "tasks" ? "bg-black text-white" : "hover:bg-gray-100"}`}
+                className={`px-3 py-2 rounded text-sm ${activeTab === "tasks" ? "bg-black text-white" : "hover:bg-gray-100"}`}
               >
                 Tasks
               </button>
               <button
                 onClick={() => setActiveTab("local")}
-                className={`px-3 py-2 rounded ${activeTab === "local" ? "bg-black text-white" : "hover:bg-gray-100"}`}
+                className={`px-3 py-2 rounded text-sm ${activeTab === "local" ? "bg-black text-white" : "hover:bg-gray-100"}`}
               >
                 Local
               </button>
             </nav>
+          </div>
+        </div>
+        {/* Secondary nav */}
+        <div className="border-t bg-gray-50">
+          <div className="mx-auto max-w-5xl px-4 py-2 flex gap-4 text-sm">
+            <Link href="/dashboard" className="font-medium text-black">Dashboard</Link>
+            <Link href="/secretary" className="text-gray-600 hover:text-black">Secretary</Link>
+            <Link href="/preferences" className="text-gray-600 hover:text-black">Preferences</Link>
           </div>
         </div>
       </header>
@@ -263,6 +272,16 @@ function MoneyTab({
     })
     .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
+  // Spending by category
+  const categoryTotals = transactions
+    .filter((t) => t.amount < 0)
+    .reduce((acc, t) => {
+      const cat = t.category || "Uncategorized";
+      acc[cat] = (acc[cat] || 0) + Math.abs(t.amount);
+      return acc;
+    }, {} as Record<string, number>);
+  const maxCategory = Math.max(...Object.values(categoryTotals), 1);
+
   return (
     <div className="space-y-6">
       <section className="rounded-lg border border-gray-200 bg-white p-4">
@@ -280,6 +299,33 @@ function MoneyTab({
         <div className="mt-3 text-xs text-gray-500">
           Voice: &ldquo;Where am I overspending?&rdquo;, &ldquo;Show subscriptions&rdquo;
         </div>
+      </section>
+
+      {/* Spending by Category */}
+      <section className="rounded-lg border border-gray-200 bg-white p-4">
+        <h2 className="text-lg font-medium">Spending by category</h2>
+        {Object.keys(categoryTotals).length === 0 ? (
+          <p className="mt-2 text-sm text-gray-500">No spending data yet.</p>
+        ) : (
+          <div className="mt-4 space-y-3">
+            {Object.entries(categoryTotals)
+              .sort(([, a], [, b]) => b - a)
+              .map(([category, amount]) => (
+                <div key={category}>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium">{category}</span>
+                    <span className="text-gray-600">${amount.toFixed(2)}</span>
+                  </div>
+                  <div className="mt-1 h-2 rounded-full bg-gray-100">
+                    <div
+                      className="h-2 rounded-full bg-black"
+                      style={{ width: `${(amount / maxCategory) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+          </div>
+        )}
       </section>
 
       <section className="rounded-lg border border-gray-200 bg-white p-4">

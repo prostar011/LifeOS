@@ -22,6 +22,8 @@ async function main() {
   await prisma.transaction.deleteMany({ where: { userId: user.id } });
   await prisma.task.deleteMany({ where: { userId: user.id } });
   await prisma.subscription.deleteMany({ where: { userId: user.id } });
+  await prisma.secretaryAction.deleteMany({ where: { userId: user.id } });
+  await prisma.preference.deleteMany({ where: { userId: user.id } });
 
   // Transactions
   const txns = [
@@ -82,6 +84,51 @@ async function main() {
   for (const t of tasks) {
     await prisma.task.create({
       data: { userId: user.id, title: t.title, completed: t.completed },
+    });
+  }
+
+  // Secretary Actions (audit trail)
+  const actions = [
+    { actionType: "call", target: "Dr. Smith Dental", status: "completed", hoursAgo: 7, payload: { reason: "Tooth pain", preferredTime: "morning", insurance: "Blue Cross" } },
+    { actionType: "sms", target: "Mom", status: "completed", hoursAgo: 8, payload: { message: "Hi mom, calling you later today!" } },
+    { actionType: "order", target: "Whole Foods", status: "completed", hoursAgo: 26, payload: { items: ["Milk", "Eggs", "Bread", "Avocados"], pickupTime: "6:00 PM" } },
+    { actionType: "cancel", target: "Netflix", status: "completed", hoursAgo: 49, payload: { reason: "Not watching enough", method: "email" } },
+    { actionType: "book", target: "Dr. Jones Dermatology", status: "pending", hoursAgo: 0, payload: { symptoms: "mole checkup", preferredTime: "morning", insurance: "Blue Cross", maxDistance: 10 } },
+  ];
+
+  for (const a of actions) {
+    await prisma.secretaryAction.create({
+      data: {
+        userId: user.id,
+        actionType: a.actionType,
+        target: a.target,
+        status: a.status,
+        payload: JSON.stringify(a.payload),
+        executedAt: a.status === "completed" ? new Date(now.getTime() - a.hoursAgo * 3600000) : null,
+        createdAt: new Date(now.getTime() - a.hoursAgo * 3600000),
+      },
+    });
+  }
+
+  // Preferences (learned)
+  const prefs = [
+    { category: "Health", key: "preferredAppointmentTime", value: "morning", confidence: 0.9 },
+    { category: "Health", key: "maxTravelDistance", value: "10 miles", confidence: 0.95 },
+    { category: "Finance", key: "preferredStore", value: "Trader Joe's", confidence: 0.85 },
+    { category: "Finance", key: "maxDiningSpend", value: "$50", confidence: 0.7 },
+    { category: "Groceries", key: "usualOrder", value: "Milk, Eggs, Bread, Avocados", confidence: 0.8 },
+    { category: "Groceries", key: "preferredGroceryTime", value: "evening", confidence: 0.65 },
+  ];
+
+  for (const p of prefs) {
+    await prisma.preference.create({
+      data: {
+        userId: user.id,
+        category: p.category,
+        key: p.key,
+        value: p.value,
+        confidence: p.confidence,
+      },
     });
   }
 
