@@ -1,0 +1,66 @@
+
+// lib/twilio.ts
+// Twilio integration for making calls and sending SMS
+
+import twilio from 'twilio'
+
+const client = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+)
+
+const FROM_NUMBER = process.env.TWILIO_PHONE_NUMBER!
+
+// Make outbound call with TwiML script
+export async function makeCall(to: string, twimlScript: string) {
+  const call = await client.calls.create({
+    to,
+    from: FROM_NUMBER,
+    twiml: twimlScript,
+  })
+  return call.sid
+}
+
+// Send SMS
+export async function sendSms(to: string, body: string) {
+  const message = await client.messages.create({
+    to,
+    from: FROM_NUMBER,
+    body,
+  })
+  return message.sid
+}
+
+// Example: call a dentist to book an appointment
+export async function callDentistToBook(
+  dentistNumber: string,
+  userName: string,
+  preferredTime: string,
+  symptoms: string
+) {
+  const twiml = `
+    <Response>
+      <Say voice="alice">Hi, I'm calling on behalf of ${userName} to book a dental appointment.</Say>
+      <Say voice="alice">They are experiencing ${symptoms} and prefer ${preferredTime} appointments.</Say>
+      <Say voice="alice">Please call back ${FROM_NUMBER} or text to confirm availability. Thank you!</Say>
+    </Response>
+  `
+  return makeCall(dentistNumber, twiml)
+}
+
+// Example: call bank to dispute a fee
+export async function callBankToDisputeFee(
+  bankNumber: string,
+  userName: string,
+  accountId: string,
+  feeAmount: number
+) {
+  const twiml = `
+    <Response>
+      <Say voice="alice">Hello, I'm calling on behalf of ${userName} regarding account ${accountId}.</Say>
+      <Say voice="alice">They would like to dispute a fee of $${feeAmount} charged recently.</Say>
+      <Say voice="alice">Please call back ${FROM_NUMBER} to discuss. Thank you!</Say>
+    </Response>
+  `
+  return makeCall(bankNumber, twiml)
+}
