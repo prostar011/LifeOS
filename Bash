@@ -1,0 +1,49 @@
+apps/
+  web/
+    app/
+      (auth)/
+        login/
+        signup/
+      dashboard/
+        money/
+        tasks/
+        local/
+        settings/
+      api/
+        stripe/
+          checkout/route.ts
+          webhook/route.ts
+        ai/
+          chat/route.ts
+        integrations/
+          plaid/
+          calendar/
+      layout.tsx
+      page.tsx
+    components/
+      ui/          # buttons, inputs, cards (Tailwind)
+      money/       # BalanceCard, SpendingChart, SubscriptionList
+      tasks/       # TaskList, HabitTracker, DayPlan
+      local/       # StoreList, QuickActions
+      ai/          # CommandBar, ChatBubble
+    lib/
+      db.ts        # Prisma/Drizzle client
+      stripe.ts    # Stripe server SDK init
+      ai.ts        # LLM client wrapper
+      auth.ts      # NextAuth/Clerk config
+    server-actions/
+      money.ts
+      tasks.ts
+      subscriptions.ts
+    types/
+      index.ts
+    tailwind.config.ts
+    tsconfig.json
+    next.config.ts
+packages/
+  db/
+    schema.prisma
+  ui/
+    (shared components if you want to reuse later)
+  config/
+    eslint, tsconfig, tailwind base configs
