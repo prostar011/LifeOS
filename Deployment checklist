@@ -1,0 +1,378 @@
+# LifeOS Deployment Checklist
+
+## Phase 1: Project Setup (Day 1-2)
+
+### 1.1 Initialize Project
+- [ ] Create Next.js 15+ app with App Router:
+  ```bash
+  npx create-next-app@latest lifeos --typescript --tailwind --app --eslint
+  ```
+- [ ] Install core dependencies:
+  ```bash
+  npm install prisma @prisma/client next-auth stripe twilio
+  npm install -D @types/node @types/react
+  ```
+- [ ] Set up folder structure:
+  ```
+  apps/web/
+    app/
+      (auth)/
+      dashboard/
+      preferences/
+      secretary/
+      api/
+    components/
+    hooks/
+    lib/
+  packages/db/
+  ```
+
+### 1.2 Database Setup
+- [ ] Set up Postgres database (Supabase/Neon/Railway)
+- [ ] Copy `prisma_schema_updated.prisma` to `prisma/schema.prisma`
+- [ ] Add `DATABASE_URL` to `.env.local`
+- [ ] Run:
+  ```bash
+  npx prisma generate
+  npx prisma db push
+  ```
+- [ ] Verify tables created in DB admin panel
+
+### 1.3 Environment Variables
+Create `.env.local` with:
+```bash
+# Database
+DATABASE_URL="postgresql://..."
+
+# Auth
+NEXTAUTH_SECRET="your-secret-key-min-32-chars"
+NEXTAUTH_URL="http://localhost:3000"
+
+# Stripe
+STRIPE_SECRET_KEY="sk_test_..."
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+STRIPE_PRICE_ID_PREMIUM_MONTHLY="price_..."
+
+# AI
+OPENAI_API_KEY="sk-..."
+
+# Twilio
+TWILIO_ACCOUNT_SID="AC..."
+TWILIO_AUTH_TOKEN="..."
+TWILIO_PHONE_NUMBER="+1..."
+
+# Integrations
+PLAID_CLIENT_ID="..."
+PLAID_SECRET="..."
+GOOGLE_PLACES_API_KEY="..."
+SENDGRID_API_KEY="SG..."
+
+# App
+NEXT_PUBLIC_BASE_URL="http://localhost:3000"
+```
+
+---
+
+## Phase 2: Core Features (Day 3-7)
+
+### 2.1 Authentication
+- [ ] Set up NextAuth with email/password or OAuth (Google/GitHub)
+- [ ] Create login/signup pages in `app/(auth)/`
+- [ ] Protect routes with `currentUser()` helper
+- [ ] Test: sign up, log in, session persists
+
+### 2.2 Database Integration
+- [ ] Create `lib/db.ts` with Prisma client
+- [ ] Seed test data (optional):
+  ```bash
+  npx prisma db seed
+  ```
+- [ ] Test: query users, transactions in Prisma Studio
+
+### 2.3 Voice Dashboard
+- [ ] Copy `VoiceDashboardPage.tsx` to `app/dashboard/page.tsx`
+- [ ] Copy `useVoiceCommands.ts` to `hooks/useVoiceCommands.ts`
+- [ ] Add microphone permissions test in browser
+- [ ] Test voice commands:
+  - [ ] "Show my spending"
+  - [ ] "Add task call mom"
+  - [ ] "Find groceries near me"
+- [ ] Verify text-to-speech responses
+
+### 2.4 AI Backend
+- [ ] Copy `ai_chat_route.ts` to `app/api/ai/chat/route.ts`
+- [ ] Copy `ai_lib.ts` to `lib/ai.ts`
+- [ ] Add `OPENAI_API_KEY` to `.env.local`
+- [ ] Test AI chat endpoint with Postman/curl:
+  ```bash
+  curl -X POST http://localhost:3000/api/ai/chat \
+    -H "Content-Type: application/json" \
+    -d '{"prompt": "Where am I overspending?", "context": {}}'
+  ```
+- [ ] Verify AI responses in dashboard
+
+---
+
+## Phase 3: Secretary Module (Day 8-12)
+
+### 3.1 Twilio Integration
+- [ ] Copy `twilio_integration.ts` to `lib/twilio.ts`
+- [ ] Copy `twiml_scripts.ts` to `lib/twiml_scripts.ts`
+- [ ] Add Twilio env vars to `.env.local`
+- [ ] Test outbound call:
+  ```bash
+  node -e "require('./lib/twilio').makeCall('+1234567890', '<Response><Say>Test</Say></Response>')"
+  ```
+- [ ] Verify call received on target phone
+
+### 3.2 Secretary Module
+- [ ] Copy `secretary_module.ts` to `lib/secretary.ts`
+- [ ] Test preference recording:
+  ```typescript
+  await recordPreference(userId, 'health', 'preferredTime', 'morning', 0.8)
+  ```
+- [ ] Test `getUserPreferences()` returns correct data
+- [ ] Test `shouldAutoApprove()` logic with different risk/confidence levels
+
+### 3.3 Preference Management UI
+- [ ] Copy `PreferenceManagementPage.tsx` to `app/preferences/page.tsx`
+- [ ] Copy preferences API routes to `app/api/preferences/`
+- [ ] Test:
+  - [ ] View all preferences
+  - [ ] Edit preference value
+  - [ ] Delete preference
+  - [ ] Filter by category
+
+### 3.4 Secretary Dashboard
+- [ ] Copy `SecretaryDashboardPage.tsx` to `app/secretary/page.tsx`
+- [ ] Copy secretary actions API routes to `app/api/secretary/`
+- [ ] Create test pending action in DB:
+  ```typescript
+  await db.secretaryAction.create({
+    data: {
+      userId,
+      actionType: 'call',
+      target: '+1234567890',
+      payload: JSON.stringify({ message: 'Test' }),
+      status: 'pending'
+    }
+  })
+  ```
+- [ ] Test:
+  - [ ] View pending actions
+  - [ ] Approve action → executes via Twilio
+  - [ ] Reject action → marks as failed
+  - [ ] View completed/failed history
+
+---
+
+## Phase 4: Payments & Stripe (Day 13-14)
+
+### 4.1 Stripe Setup
+- [ ] Create Stripe account (test mode)
+- [ ] Create products:
+  - LifeOS Free ($0/month)
+  - LifeOS Premium ($9.99/month)
+- [ ] Get price IDs → add to `.env.local`
+- [ ] Copy Stripe integration code (from earlier spec)
+- [ ] Set up webhook endpoint:
+  - [ ] Deploy to staging (Vercel)
+  - [ ] Add webhook URL to Stripe dashboard
+  - [ ] Test webhook events in Stripe CLI
+
+### 4.2 Payment Flow
+- [ ] Implement checkout session creation
+- [ ] Add upgrade button to dashboard
+- [ ] Test:
+  - [ ] Click upgrade → Stripe Checkout opens
+  - [ ] Complete payment (test card: 4242 4242 4242 4242)
+  - [ ] Webhook updates user plan to "premium"
+  - [ ] Dashboard shows "Premium" status
+
+---
+
+## Phase 5: PWA & Mobile (Day 15-16)
+
+### 5.1 PWA Setup
+- [ ] Create `public/manifest.webmanifest`:
+  ```json
+  {
+    "name": "LifeOS",
+    "short_name": "LifeOS",
+    "start_url": "/dashboard",
+    "display": "standalone"
+  }
+  ```
+- [ ] Add app icons (192x192, 512x512)
+- [ ] Create `public/sw.js` service worker
+- [ ] Register service worker in `layout.tsx`
+- [ ] Test:
+  - [ ] "Add to Home Screen" on iPhone Safari
+  - [ ] App opens in standalone mode
+  - [ ] Works offline (cached dashboard)
+
+### 5.2 Mobile Optimization
+- [ ] Test on iPhone (Safari, Chrome)
+- [ ] Verify:
+  - [ ] Touch targets ≥ 44px
+  - [ ] No horizontal scrolling
+  - [ ] Voice button accessible
+  - [ ] Text-to-speech works on iOS
+- [ ] Add Apple-specific meta tags:
+  ```html
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  ```
+
+---
+
+## Phase 6: Integrations (Day 17-20)
+
+### 6.1 Plaid (Banking)
+- [ ] Create Plaid account (sandbox mode)
+- [ ] Add `PLAID_CLIENT_ID`, `PLAID_SECRET` to `.env.local`
+- [ ] Implement Plaid Link flow
+- [ ] Test:
+  - [ ] Connect sandbox bank account
+  - [ ] Fetch transactions
+  - [ ] Display in Money tab
+
+### 6.2 Google Calendar
+- [ ] Set up Google Cloud project
+- [ ] Enable Calendar API
+- [ ] Implement OAuth flow
+- [ ] Test:
+  - [ ] Connect Google Calendar
+  - [ ] Fetch events
+  - [ ] Display in Tasks tab
+
+### 6.3 Google Places (Local)
+- [ ] Add `GOOGLE_PLACES_API_KEY` to `.env.local`
+- [ ] Implement nearby search for:
+  - [ ] Grocery stores
+  - [ ] Pharmacies
+  - [ ] Gas stations
+- [ ] Test with your location
+
+### 6.4 SendGrid (Email)
+- [ ] Create SendGrid account
+- [ ] Add `SENDGRID_API_KEY` to `.env.local`
+- [ ] Test:
+  - [ ] Send cancellation email
+  - [ ] Send appointment confirmation
+
+---
+
+## Phase 7: Testing & QA (Day 21-23)
+
+### 7.1 End-to-End Testing
+- [ ] Test complete user journey:
+  1. Sign up → log in
+  2. Connect bank account (Plaid)
+  3. Connect calendar (Google)
+  4. Use voice commands
+  5. Ask AI questions
+  6. Book dentist via secretary
+  7. Review preferences
+  8. Upgrade to premium (Stripe)
+  9. Install as PWA on iPhone
+
+### 7.2 Edge Cases
+- [ ] Test:
+  - [ ] No microphone permission → shows error
+  - [ ] No internet → offline mode
+  - [ ] Invalid voice input → graceful fallback
+  - [ ] AI rate limit reached → upgrade prompt
+  - [ ] Twilio call fails → retry logic
+
+### 7.3 Performance
+- [ ] Run Lighthouse audit:
+  - [ ] Performance ≥ 90
+  - [ ] Accessibility ≥ 90
+  - [ ] Best Practices ≥ 90
+  - [ ] SEO ≥ 90
+- [ ] Optimize images, fonts, bundle size
+
+---
+
+## Phase 8: Deployment (Day 24-25)
+
+### 8.1 Vercel Deployment
+- [ ] Push code to GitHub
+- [ ] Connect repo to Vercel
+- [ ] Add all env vars in Vercel dashboard
+- [ ] Deploy to production
+- [ ] Test production URL:
+  - [ ] Voice commands (HTTPS required)
+  - [ ] Stripe checkout
+  - [ ] Twilio calls
+  - [ ] All API routes
+
+### 8.2 Domain & SSL
+- [ ] Buy domain (e.g., lifeos.app)
+- [ ] Add to Vercel
+- [ ] Verify SSL certificate auto-configured
+- [ ] Test: https://lifeos.app
+
+### 8.3 Monitoring
+- [ ] Set up error tracking (Sentry/LogRocket)
+- [ ] Set up analytics (Google Analytics/PostHog)
+- [ ] Set up uptime monitoring (UptimeRobot)
+
+---
+
+## Phase 9: Launch (Day 26-30)
+
+### 9.1 Beta Testing
+- [ ] Invite 10-20 beta testers
+- [ ] Collect feedback on:
+  - [ ] Voice accuracy
+  - [ ] AI helpfulness
+  - [ ] Secretary autonomy
+  - [ ] UI/UX
+- [ ] Fix critical bugs
+
+### 9.2 Marketing
+- [ ] Create landing page
+- [ ] Write demo script video
+- [ ] Post on:
+  - [ ] Product Hunt
+  - [ ] Hacker News
+  - [ ] Reddit (r/SaaS, r/nextjs)
+  - [ ] Twitter/LinkedIn
+
+### 9.3 Legal
+- [ ] Write Terms of Service
+- [ ] Write Privacy Policy
+- [ ] Add GDPR/CCPA compliance
+- [ ] Add HIPAA considerations (if handling health data)
+
+---
+
+## Post-Launch Checklist
+
+- [ ] Monitor error logs daily
+- [ ] Review user feedback weekly
+- [ ] Iterate on AI prompts based on usage
+- [ ] Add new TwiML scripts for common requests
+- [ ] Expand preference categories
+- [ ] Build mobile app (React Native)
+- [ ] Add team/family mode
+
+---
+
+## Quick Smoke Test (5 minutes)
+
+After deployment, run this:
+
+1. **Sign up**: Create account with email
+2. **Voice test**: Click mic, say "Show my spending"
+3. **AI test**: Type "Where am I overspending?"
+4. **Secretary test**: Say "Book me a dentist"
+5. **Payment test**: Click upgrade, complete Stripe checkout
+6. **PWA test**: Add to iPhone home screen, open app
+7. **Preferences test**: Go to /preferences, verify empty or test data
+8. **Dashboard test**: Go to /secretary, verify audit trail
+
+If all pass → ✅ Ready for users!
